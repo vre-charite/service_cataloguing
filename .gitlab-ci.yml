@@ -7,7 +7,7 @@ variables:
 build:
   stage: build
   tags:
-    - VRE-Deployement
+    - VRE-Deployment
   script:
     - docker login ${REGISTRY} -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
     - docker build -t ${CONTAINER_IMAGE} .
@@ -16,7 +16,7 @@ build:
 deploy:
   stage: deploy
   tags:
-    - VRE-Deployement
+    - VRE-Deployment
   script:
     - sed -i "s/<VERSION>/${CI_COMMIT_SHORT_SHA}/g" kubernetes/deployment.yaml
     - kubectl apply -f kubernetes/deployment.yaml
