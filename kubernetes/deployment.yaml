@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cataloguing
+  namespace: utility
+  labels:
+    app: cataloguing
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cataloguing
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 33%
+  template:
+    metadata:
+      labels:
+        app: cataloguing
+    spec:
+      containers:
+        - name: cataloguing
+          image: 10.32.42.225:5000/cataloguing:<VERSION>
+          ports:
+            - containerPort: 5064
+          env:
+          - name: env
+            value: "charite"
+      nodeSelector:
+        namespace: utility
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cataloguing
+  namespace: utility
+  labels:
+    app: cataloguing
+spec:
+  ports:
+  - name: http
+    port: 5064
+    targetPort: 5064
+    nodeport:
+  selector:
+    app: cataloguing
+  type: ClusterIP
