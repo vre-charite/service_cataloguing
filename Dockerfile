@@ -6,6 +6,9 @@ COPY requirements.txt ./
 # set timezone 
 ENV TZ=America/Toronto
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN export http_proxy="http://proxy.charite.de:8080/"
+RUN export https_proxy="http://proxy.charite.de:8080/"
+
 
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
