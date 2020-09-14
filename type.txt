@@ -181,7 +181,7 @@ curl -v -XPOST -H "Content-type: application/json" -d '{
 
 ###################################################################
 
-curl -v -XPUT -H "Content-type: application/json" -d '{
+curl -v -XPOST -H "Content-type: application/json" -d '{
   "entityDefs": [
     {
       "category": "ENTITY",
@@ -441,5 +441,180 @@ curl -v -XPOST -H "Content-type: application/json" -d '{
       "relationshipAttributeDefs": []
     }
   ]
+
 }' '10.3.7.222:21000/api/atlas/v2/types/typedefs' -u admin:admin
+
+
+#########################################################################
+curl -v -XPOST -H "Content-type: application/json" -d '{
+  "entityDefs": [
+    {
+      "category": "ENTITY",
+      "createdBy": "atlas",
+      "updatedBy": "atlas",
+      "version": 1,
+      "name": "nfs_file_cp",
+      "description": "nfs_file_cp",
+      "typeVersion": "1",
+      "serviceType": "hdfs_path",
+      "attributeDefs": [
+        {
+          "name": "name",
+          "typeName": "string",
+          "isOptional": false,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": true,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "path",
+          "typeName": "string",
+          "isOptional": false,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "description",
+          "typeName": "string",
+          "isOptional": true,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 0,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "owner",
+          "typeName": "string",
+          "isOptional": false,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "createTime",
+          "typeName": "date",
+          "isOptional": true,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 0,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": false,
+          "includeInNotification": false,
+          "searchWeight": -1
+        },
+        {
+          "name": "copyTime",
+          "typeName": "date",
+          "isOptional": true,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 0,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": false,
+          "includeInNotification": false,
+          "searchWeight": -1
+        },
+        {
+          "name": "updateBy",
+          "typeName": "string",
+          "isOptional": false,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "bucketName",
+          "typeName": "string",
+          "isOptional": false,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "fileName",
+          "typeName": "string",
+          "isOptional": false,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "generateID",
+          "typeName": "string",
+          "isOptional": true,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "pipeline",
+          "typeName": "string",
+          "defaultValue": 0,
+          "isOptional": true,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        },
+        {
+          "name": "fileSize",
+          "typeName": "long",
+          "defaultValue": 0,
+          "isOptional": true,
+          "cardinality": "SINGLE",
+          "valuesMinCount": 1,
+          "valuesMaxCount": 1,
+          "isUnique": false,
+          "isIndexable": true,
+          "includeInNotification": false,
+          "searchWeight": 10
+        }
+      ],
+      "superTypes": [],
+      "subTypes": [],
+      "relationshipAttributeDefs": []
+    }
+  ]
+}' '10.3.7.222:21000/api/atlas/v2/types/typedefs' -u admin:admin
+
+
+
+
+
+
 
