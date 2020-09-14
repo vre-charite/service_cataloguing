@@ -1,4 +1,4 @@
-FROM python:3.7-buster
+FROM 10.32.42.225:5000/python:3.7-buster
 USER root
 WORKDIR /usr/src/app
 COPY requirements.txt ./
