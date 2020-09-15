@@ -5,6 +5,7 @@ metadata:
   namespace: utility
   labels:
     app: cataloguing
+    env: charite
 spec:
   replicas: 3
   selector:
@@ -19,6 +20,7 @@ spec:
     metadata:
       labels:
         app: cataloguing
+        env: charite
     spec:
       containers:
         - name: cataloguing
@@ -28,6 +30,18 @@ spec:
           env:
           - name: env
             value: "charite"
+          readinessProbe:
+            tcpSocket:
+              port: 5064
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
       nodeSelector:
         namespace: utility
 ---
