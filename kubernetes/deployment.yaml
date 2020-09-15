@@ -11,6 +11,7 @@ spec:
   selector:
     matchLabels:
       app: cataloguing
+      env: charite
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -52,6 +53,7 @@ metadata:
   namespace: utility
   labels:
     app: cataloguing
+    env: charite
 spec:
   ports:
   - name: http
@@ -60,4 +62,5 @@ spec:
     nodeport:
   selector:
     app: cataloguing
+    env: charite
   type: ClusterIP
