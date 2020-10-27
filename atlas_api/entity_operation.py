@@ -41,7 +41,7 @@ class EntityAction(Resource):
         '''
         app.logger.info('Calling EntityAction post')
         post_data = request.get_json()
-        app.logger.info('Recieving the payload: %s', json.dumps(post_data))
+        app.logger.info('Recieving the payload for upload: %s', json.dumps(post_data))
 
         try:
             headers = {'content-type': 'application/json'}
@@ -195,8 +195,6 @@ class EntityQueryDSL(Resource):
         return {"result":res.json()}, res.status_code
         
 
-
-
 class EntityActionByGuid(Resource):
     entity_sample_return = '''
     {
@@ -250,6 +248,62 @@ class EntityActionByGuid(Resource):
 
         return {"result":res.json()}, res.status_code
 
+
+    # deprecate the entity by guid
+    def delete(self, guid):
+        app.logger.info('Calling EntityActionByGuid get')
+        app.logger.info('Recieving the parameter: %s', guid)
+
+        try:
+            headers = {'content-type': 'application/json'}
+            res = requests.delete(ConfigClass.ATLAS_API+'api/atlas/v2/entity/guid/%s'%(guid), 
+                verify=False, headers=headers, 
+                auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
+            )
+
+            # log it if not 200 level response
+            if res.status_code >= 300:
+                app.logger.error('Error in response: %s', res.text)
+                return {"result": res.text}, res.status_code
+        except Exception as e:
+            app.logger.error('Error in getting entity by guid: %s', str(e))
+            return {"result":str(e)}, 403
+
+        return {"result":res.json()}, res.status_code
+
+
+class EntityTagByGuid(Resource):
+    def post(self, guid):
+        '''
+        the api allow to update the tags given one guid
+        '''
+
+        app.logger.info('Calling EntityTagByGuid post')
+        post_data = request.get_json()
+        label = post_data.get('labels', None)
+        if not isinstance(label, list):
+            return {"result": "labels is required"}, 403
+        app.logger.info('Recieving the parameter: %s', guid)
+
+        try:
+            ###################################
+            # NOTE HERE THIS IS ONLY TEMPORARY SOLUTION
+            import os
+            cmd = '''
+            curl -v -XPOST -H "Content-type: application/json" -d '%s' '%sapi/atlas/v2/entity/guid/%s/labels' -u %s:%s
+            '''%(json.dumps(post_data['labels']), ConfigClass.ATLAS_API, guid, ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
+            print(cmd)
+
+            stream = os.popen(cmd)
+
+            output = stream.read()
+            print(output)
+
+        except Exception as e:
+            app.logger.error('Error in update entity by guid: %s', str(e))
+            return {"result":str(e)}, 403
+
+        return {"result":'success'}, 200
 
 # class get_entity_by_path(Resource):
 #     def get(self, bucket_name):

@@ -4,11 +4,10 @@ from config import ConfigClass
 
 import importlib
 
-import logging
-from logging.handlers import RotatingFileHandler
-from logging.config import dictConfig
+from services.logger_services.logger_factory_service import SrvLoggerFactory
 
 app = Flask(__name__)
+_main_logger = SrvLoggerFactory('main').get_logger()
 
 def create_app(extra_config_settings={}):
     # initialize app and config app
@@ -27,14 +26,7 @@ def create_app(extra_config_settings={}):
     for apis in ConfigClass.api_modules:
         api = importlib.import_module(apis)
         api.module_api.init_app(app)
-
-    # setup the logging 
-    handler = RotatingFileHandler(ConfigClass.LOG_FILE, maxBytes=10000, backupCount=1)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # il.setFormatter(formatter)
-    handler.setFormatter(formatter)
     
-    app.logger.addHandler(handler)
-    app.logger.setLevel(logging.INFO)
+    app.logger = _main_logger
 
     return app
