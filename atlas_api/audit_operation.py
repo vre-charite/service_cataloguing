@@ -6,7 +6,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 from config import ConfigClass  
-
+from app import app
 import json
 
 class AuditAction(Resource):

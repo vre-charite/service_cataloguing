@@ -7,3 +7,4 @@ class EDataType(Enum):
 
 class EPipeline(Enum):
     dicom_edit = 0
+    data_transfer = 1

@@ -1,0 +1,11 @@
+pytest==6.1.1
+pytest-env==0.6.2
+coverage==5.3
+requests==2.24.0
+Flask==1.1.2
+Flask-Cors==3.0.8
+Flask-JWT==0.3.2
+Flask-RESTful==0.3.8
+Flask-SQLAlchemy==2.4.3
+flask-restx==0.2.0
+python-json-logger==2.0.1

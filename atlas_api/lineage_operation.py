@@ -25,7 +25,17 @@ class LineageAction(Resource):
             response = self.lineage_mgr.get(entity_name, type_name, direction)
             if response.status_code == 200:
                 response_json = response.json()
-                print(response_json)
+                if response_json['guidEntityMap']:
+                    pass
+                else:
+                    res_default_entity = self.lineage_mgr.search_entity(entity_name, type_name=type_name)
+                    if res_default_entity.status_code == 200 and len(res_default_entity.json()['entities']) > 0:
+                        default_entity = res_default_entity.json()['entities'][0]
+                        response_json['guidEntityMap'] = {
+                            '{}'.format(default_entity['guid']): default_entity
+                        }
+                    else:
+                        return {"result": "Invalid Entity"}, 400
                 return {"result": response_json}, 200
             else:
                 self.__logger.error('Error: %s', response.text)

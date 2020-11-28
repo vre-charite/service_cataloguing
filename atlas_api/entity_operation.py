@@ -117,20 +117,21 @@ class EntityQueryBasic(Resource):
         #######################################################################
         # print(post_data)
         type_name = post_data.get('typeName', None)
+        app.logger.debug(ConfigClass.ATLAS_API+'api/atlas/v2/search/quick')
+        app.logger.debug('EntityQueryBasic post_data' + str(post_data))
         try:
             headers = {'content-type': 'application/json'}
             res = requests.post(ConfigClass.ATLAS_API+'api/atlas/v2/search/quick', 
                 verify=False, headers=headers, json=post_data, 
                 auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
             )
-
             # log it if not 200 level response
             if res.status_code >= 300:
                 app.logger.error('Error in response of quick search: %s', res.text)
                 return {"result": res.text}, res.status_code
 
             aggregation = res.json()['aggregationMetrics'].get('__typeName', [])
-
+            app.logger.debug('EntityQueryBasic res 1: ' + str(res.json()))
             # get the file count by type_name
             approximate_count = None
             if len(aggregation) == 1:
@@ -148,14 +149,12 @@ class EntityQueryBasic(Resource):
                 verify=False, headers=headers, json=post_data, 
                 auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
             )
-
             # log it if not 200 level response
             if res.status_code >= 300:
                 app.logger.error('Error in response: %s', res.text)
                 return {"result": res.text}, res.status_code
-
             # also update the approximate count
-            print(res.json())
+            app.logger.debug('EntityQueryBasic res 2: ' + str(res.json()))
             ret_json = res.json()
             if approximate_count:
                 ret_json.update({"approximateCount": approximate_count})
@@ -164,35 +163,8 @@ class EntityQueryBasic(Resource):
             app.logger.error('Error in getting file list: %s', str(e))
             return {"result":str(e)}, 403
 
+        app.logger.debug('EntityQueryBasic ret_json: ' + str(ret_json))
         return {"result":ret_json}, res.status_code
-
-
-class EntityQueryDSL(Resource):
-    def get(self):
-        '''
-        Use imbedded SQL language to query on
-        '''
-        query = request.args.get('query', None)
-        type_name = request.args.get('typeName', None)
-
-        # print(post_data)
-        try:
-            headers = {'content-type': 'application/json'}
-            res = requests.get(ConfigClass.ATLAS_API+'api/atlas/v2/search/dsl', 
-                verify=False, headers=headers, params={'query': query, 'typeName': type_name}, 
-                auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
-            )
-
-            # log it if not 200 level response
-            if res.status_code >= 300:
-                app.logger.error('Error in response: %s', res.text)
-                return {"result": res.text}, res.status_code
-
-        except Exception as e:
-            app.logger.error('Error in getting file list: %s', str(e))
-            return {"result":str(e)}, 403
-
-        return {"result":res.json()}, res.status_code
         
 
 class EntityActionByGuid(Resource):
@@ -288,16 +260,19 @@ class EntityTagByGuid(Resource):
         try:
             ###################################
             # NOTE HERE THIS IS ONLY TEMPORARY SOLUTION
+            # label should contain alphanumeric characters, _ or -
             import os
             cmd = '''
-            curl -v -XPOST -H "Content-type: application/json" -d '%s' '%sapi/atlas/v2/entity/guid/%s/labels' -u %s:%s
+            curl -XPOST -H "Content-type: application/json" -d '%s' '%sapi/atlas/v2/entity/guid/%s/labels' -u %s:%s
             '''%(json.dumps(post_data['labels']), ConfigClass.ATLAS_API, guid, ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
-            print(cmd)
-
             stream = os.popen(cmd)
 
+            # here since the curl will return the str so try to parse into json
+            # the special case is if it success then it will return nothing
             output = stream.read()
-            print(output)
+            if output != '':
+                error_json = json.loads(output)
+                return {"result":error_json.get('errorMessage', None)}, 403
 
         except Exception as e:
             app.logger.error('Error in update entity by guid: %s', str(e))
@@ -305,32 +280,3 @@ class EntityTagByGuid(Resource):
 
         return {"result":'success'}, 200
 
-# class get_entity_by_path(Resource):
-#     def get(self, bucket_name):
-#         post_data = {
-#           "excludeDeletedEntities": True,
-#           "includeSubClassifications": True,
-#           "includeSubTypes": True,
-#           "includeClassificationAttributes": True,
-#           "entityFilters": {
-#             "attributeName": "bucketName",
-#             "operator": "contains",
-#             "attributeValue": bucket_name
-#           },
-#           "tagFilters": None,
-#           "attributes": ["generateID"],
-#           "limit": 25,
-#           "offset": 0,
-#           "typeName": "nfs_file",
-#           "classification": None,
-#           "termName": None
-#         }
-#         headers = {'content-type': 'application/json'}
-#         res = requests.post(ConfigClass.ATLAS_API+'api/atlas/v2/search/basic', 
-#             verify=False, headers=headers, json=post_data, 
-#             auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
-#         )
-
-#         res = json.loads(res.text)['entities']
-
-#         return {"result": res}, 200

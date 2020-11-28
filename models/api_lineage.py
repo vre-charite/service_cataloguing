@@ -15,6 +15,7 @@ class CreationForm:
                 'project_code': '',
                 'pipeline_name': '',
                 'description': '',
+                'process_timestamp': '',
             }
 
     @property
@@ -61,6 +62,14 @@ class CreationForm:
     def description(self, description):
         self._attribute_map['description'] = description
 
+    @property
+    def process_timestamp(self):
+        return self._attribute_map['process_timestamp']
+
+    @process_timestamp.setter
+    def process_timestamp(self, process_timestamp):
+        self._attribute_map['process_timestamp'] = process_timestamp
+
 def creationFormFactory(post_form):
     try:
         my_form = CreationForm()
@@ -69,6 +78,7 @@ def creationFormFactory(post_form):
         my_form.project_code = post_form['projectCode']
         my_form.pipeline_name = post_form['pipelineName']
         my_form.description = post_form.get('description', '')
+        my_form.process_timestamp = post_form.get('process_timestamp', None)
         return my_form
     except Exception as e:
         _logger.error(str(e))

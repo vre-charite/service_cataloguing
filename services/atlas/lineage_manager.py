@@ -4,7 +4,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 from config import ConfigClass
 from services.logger_services.logger_factory_service import SrvLoggerFactory
-from models.api_lineage import creationFormFactory
+from models.api_lineage import creationFormFactory, CreationForm
 from models.data_models import EDataType, EPipeline
 import os, datetime, json
 
@@ -22,7 +22,8 @@ class SrvLineageMgr():
         return (parent_type, child_type)
         '''
         return {
-            EPipeline.dicom_edit.name: (EDataType.nfs_file.name, EDataType.nfs_file_processed.name)
+            EPipeline.dicom_edit.name: (EDataType.nfs_file.name, EDataType.nfs_file_processed.name),
+            EPipeline.data_transfer.name: (EDataType.nfs_file.name, EDataType.nfs_file_processed.name)
         }.get(pipeline_name, (EDataType.nfs_file.name, EDataType.nfs_file_processed.name))
 
     def entityname_to_typename(self, entity_name):
@@ -31,9 +32,11 @@ class SrvLineageMgr():
         '''
         if 'processed' in entity_name:
             return EDataType.nfs_file_processed.name
+        if '/vre-data/tvbcloud/raw' in entity_name:
+            return EDataType.nfs_file_processed.name
         return EDataType.nfs_file.name
 
-    def create(self, creation_form: creationFormFactory):
+    def create(self, creation_form: CreationForm):
         '''
         create lineage in Atlas
         '''
@@ -42,31 +45,33 @@ class SrvLineageMgr():
         output_file_name = os.path.basename(creation_form.output_path)
         self._logger.debug('[SrvLineageMgr]input_file_path: ' + creation_form.input_path)
         self._logger.debug('[SrvLineageMgr]output_file_path: ' + creation_form.output_path)
-        dt = datetime.datetime.now() 
+        dt = datetime.datetime.now() - datetime.timedelta(seconds=2) ## temporary solution
         utc_time = dt.replace(tzinfo = datetime.timezone.utc) 
-        current_timestamp = utc_time.isoformat()
+        current_timestamp = utc_time.timestamp() if not creation_form.process_timestamp \
+            else creation_form.process_timestamp
         qualifiedName = '{}:{}:{}:{}:to:{}'.format(
             creation_form.project_code,
             creation_form.pipeline_name,
             current_timestamp,
             input_file_name,
             output_file_name)
+        typenames = self.lineage_to_typename(creation_form.pipeline_name)
         atlas_post_form_json = {
             "entities": [{
                 "typeName": "Process",
                 "attributes": {
                     "createTime": current_timestamp,
-                    "updateTime": "",
+                    "updateTime": current_timestamp,
                     "qualifiedName": qualifiedName,
                     "name": qualifiedName,
                     "description": creation_form.description,
                     "inputs":[{
-                        "guid": self.get_guid_by_entity_name(creation_form.input_path),
-                        "typeName": self.entityname_to_typename(creation_form.input_path)
+                        "guid": self.get_guid_by_entity_name(creation_form.input_path, typenames[0]),
+                        "typeName": typenames[0]
                     }],
                     "outputs":[{
-                        "guid": self.get_guid_by_entity_name(creation_form.output_path),
-                        "typeName": self.entityname_to_typename(creation_form.output_path)
+                        "guid": self.get_guid_by_entity_name(creation_form.output_path, typenames[1]),
+                        "typeName": typenames[1]
                     }]
                 }
             }]
@@ -96,8 +101,9 @@ class SrvLineageMgr():
         )
         return response
 
-    def search_entity(self, entity_name):
-        type_name = self.entityname_to_typename(entity_name)
+    def search_entity(self, entity_name, type_name = None):
+        if not type_name:
+            type_name = self.entityname_to_typename(entity_name)
         url = self.base_url + self.search_endpoint
         response = requests.get(url, 
                 verify = False, 
@@ -110,8 +116,8 @@ class SrvLineageMgr():
         )
         return response
 
-    def get_guid_by_entity_name(self, entity_name):
-        search_res = self.search_entity(entity_name)
+    def get_guid_by_entity_name(self, entity_name, type_name = None):
+        search_res = self.search_entity(entity_name, type_name)
         if search_res.status_code == 200:
             my_json = search_res.json()
             self._logger.debug('[SrvLineageMgr]search_res : ' + str(my_json))
