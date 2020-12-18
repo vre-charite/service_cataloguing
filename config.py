@@ -16,3 +16,4 @@ class ConfigClass(object):
 
     # error and access log
     LOG_FILE = 'application.log'
+

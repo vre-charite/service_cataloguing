@@ -114,7 +114,21 @@ class SrvLineageMgr():
                 }, 
                 auth = HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
         )
-        return response
+        if response.status_code == 200 and response.json().get('entities'):
+            return response
+        else:
+            response_processed_search = requests.get(url, 
+                verify = False, 
+                params={
+                    'attrName': 'name',
+                    'typeName': "nfs_file_processed",
+                    'attrValuePrefix': entity_name
+                }, 
+                auth = HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD))
+            if response_processed_search.status_code == 200 and response_processed_search.json().get('entities'):
+                return response_processed_search
+            else:
+                raise(Exception('Not Found Entity: ' + entity_name))
 
     def get_guid_by_entity_name(self, entity_name, type_name = None):
         search_res = self.search_entity(entity_name, type_name)

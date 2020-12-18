@@ -244,6 +244,54 @@ class EntityActionByGuid(Resource):
         return {"result":res.json()}, res.status_code
 
 
+class EntityByGuidBulk(Resource):
+    entity_sample_return = '''
+    {
+        "result": { "entities": [{
+            "referredEntities": {},
+            "entity": {
+                "typeName": "nfs_path",
+                "attributes": {
+                    "owner": "admin",
+                    "path": "test_path_66",
+                    "createTime": 0,
+                    "updateBy": null,
+                    "name": "test_path_66",
+                    "description": null
+                },
+                "guid": "0363af63-0478-4dbc-ba16-25a82e3163ff",
+                "status": "ACTIVE",
+                "createdBy": "admin",
+                "updatedBy": "admin",
+                "createTime": 1594320166984,
+                "updateTime": 1594320166984,
+                "version": 0
+            }
+        }]}
+    }
+    '''
+
+    @atlas_entity_ns.response(200, entity_sample_return)
+    def post(self):
+        app.logger.info('Calling EntityActionByGuidBulk get')
+        guids = request.get_json().get("guids", [])
+        if not guids:
+            return {"result": "guids required"}, 400
+
+        try:
+            res = requests.get(ConfigClass.ATLAS_API+'api/atlas/v2/entity/bulk', 
+                auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD),
+                params={"guid": guids}
+            )
+            if res.status_code >= 300:
+                app.logger.error('Error in response: %s', res.text)
+                return {"result": res.text}, res.status_code
+        except Exception as e:
+            app.logger.error('Error in getting entity by guid: %s', str(e))
+            return {"result":str(e)}, 403
+        return {"result":res.json()}, res.status_code
+
+
 class EntityTagByGuid(Resource):
     def post(self, guid):
         '''
@@ -276,7 +324,21 @@ class EntityTagByGuid(Resource):
 
         except Exception as e:
             app.logger.error('Error in update entity by guid: %s', str(e))
-            return {"result":str(e)}, 403
+            return {"result":str(e)}, 500
 
         return {"result":'success'}, 200
 
+    def get(self, guid):
+        try:
+            url = ConfigClass.ATLAS_API + "api/atlas/v2/entity/guid/{}".format(guid)
+            res = requests.get(
+                url, 
+                auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
+            )
+            if res.status_code == 200:
+                return res.json()['entity'].get('labels', []), 200
+            else:
+                return res.text, res.status_code
+        except Exception as e:
+            app.logger.error('Error in update entity by guid: %s', str(e))
+            return {"result":str(e)}, 500
