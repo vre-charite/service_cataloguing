@@ -1,5 +1,6 @@
+from pprint import pprint
+from time import time
 from models.meta_class import MetaService
-from flask import request, make_response, jsonify
 import requests
 from requests.auth import HTTPBasicAuth
 from config import ConfigClass
@@ -8,7 +9,7 @@ from models.api_lineage import creationFormFactory, CreationForm
 from models.data_models import EDataType, EPipeline
 import os, datetime, json
 
-class SrvLineageMgr():
+class SrvLineageMgr(metaclass=MetaService):
     _logger = SrvLoggerFactory('api_lineage_action').get_logger()
 
     def __init__(self):
@@ -36,7 +37,7 @@ class SrvLineageMgr():
             return EDataType.nfs_file_processed.name
         return EDataType.nfs_file.name
 
-    def create(self, creation_form: CreationForm):
+    def create(self, creation_form: CreationForm, version = 'v1'):
         '''
         create lineage in Atlas
         '''
@@ -55,15 +56,16 @@ class SrvLineageMgr():
             current_timestamp,
             input_file_name,
             output_file_name)
-        typenames = self.lineage_to_typename(creation_form.pipeline_name)
+        ## v2 uses new entity type, v1 uses old one
+        typenames = self.lineage_to_typename(creation_form.pipeline_name) if version == 'v1' else ['file_data', 'file_data']
         atlas_post_form_json = {
             "entities": [{
                 "typeName": "Process",
                 "attributes": {
                     "createTime": current_timestamp,
                     "updateTime": current_timestamp,
-                    "qualifiedName": qualifiedName,
-                    "name": qualifiedName,
+                    "qualifiedName": qualifiedName if version == 'v1' else qualifiedName + ":v2",
+                    "name": qualifiedName if version == 'v1' else qualifiedName + ":v2",
                     "description": creation_form.description,
                     "inputs":[{
                         "guid": self.get_guid_by_entity_name(creation_form.input_path, typenames[0]),
@@ -141,3 +143,55 @@ class SrvLineageMgr():
         else:
             self._logger.error('Error when get_guid_by_entity_name: ' + search_res.text)
             return None
+
+    def mirror_file_data_lineage(self, input_relation_info: dict, output_relation_info: dict,
+        guid_map: dict):
+        try:
+            ## create lineage post form
+            input_node_id = input_relation_info['fromEntityId']
+            input_node = guid_map[input_node_id]
+            process_node_id = input_relation_info['toEntityId']
+            output_node_id = output_relation_info['toEntityId']
+            output_node = guid_map[output_node_id]
+            input_name = input_node['attributes']['name']
+            output_name = output_node['attributes']['name']
+            process_node = guid_map[process_node_id]
+            process_timestamp = round(float(process_node['attributes']['qualifiedName'].split(':')[2]))
+            qualifiedName = process_node['attributes']['qualifiedName'] + ":" + "importedat{}".format(round(time())) 
+            # post request
+            atlas_post_form_json = {
+                "entities": [{
+                    "typeName": "Process",
+                    "attributes": {
+                        "createTime": process_timestamp,
+                        "updateTime": process_timestamp,
+                        "qualifiedName": qualifiedName,
+                        "name": qualifiedName,
+                        "description": "Auto Imported",
+                        "inputs":[{
+                            "guid": self.get_guid_by_entity_name(input_name, "file_data"),
+                            "typeName": "file_data"
+                        }],
+                        "outputs":[{
+                            "guid": self.get_guid_by_entity_name(output_name, "file_data"),
+                            "typeName": "file_data"
+                        }]
+                    }
+                }]
+            }
+            ## create atlas lineage
+            headers = {'content-type': 'application/json'}
+            res = requests.post(self.base_url + self.entity_bulk_endpoint, 
+                verify = False, json = atlas_post_form_json, 
+                auth = HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD),
+                headers=headers
+            )
+            if res.status_code == 200:
+                return res.json()
+            else:
+                raise res.text
+        except Exception as e:
+            return {
+                        "error": True,
+                        "msg": str(e)
+                    }

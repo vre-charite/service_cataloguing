@@ -9,7 +9,8 @@ atlas_entity_ns = module_api.namespace('Atlas Entity Actions', description='Oper
 
 from .entity_operation import EntityAction, EntityQueryBasic, EntityActionByGuid, EntityTagByGuid, EntityByGuidBulk
 from .audit_operation import AuditAction
-from .lineage_operation import LineageAction
+from .lineage_operation import LineageAction, LineageActionV2, LineageImport
+from .file_data_operations import FileDataOperations
 
 ######################################################### Entity API ###############################################
 atlas_entity_ns.add_resource(EntityAction, '/v1/entity')
@@ -24,3 +25,7 @@ atlas_entity_ns.add_resource(AuditAction, '/v1/entity/guid/<guid>/audit')
 
 ######################################################### Lineage API ############################################
 atlas_entity_ns.add_resource(LineageAction, '/v1/lineage')
+atlas_entity_ns.add_resource(LineageActionV2, '/v2/lineage')
+atlas_entity_ns.add_resource(LineageImport, '/v2/lineage-import')
+######################################################### File Meta API ############################################
+atlas_entity_ns.add_resource(FileDataOperations, '/v2/filedata')

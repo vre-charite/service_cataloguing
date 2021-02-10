@@ -14,7 +14,6 @@ class AuditAction(Resource):
         '''
         Get the audit log from entity by guid
         '''
-        app.logger.info('Calling AuditAction get')
         count = request.args.get('count', 25)
         app.logger.info('Recieving the parameter: count %s, guid %s', count, guid)
 

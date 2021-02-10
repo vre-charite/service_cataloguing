@@ -207,3 +207,13 @@ lineage_post_form = module_api.model(
         'description': fields.String(readOnly=True, description='description'),
     }
 )
+
+
+lineage_import_post_form = module_api.model(
+    'lineage_import_post_form',
+    {
+        'full_path': fields.String(readOnly=True, description='full_path'),
+        'entity_type': fields.String(readOnly=True, description='entity_type')
+    }
+)
+

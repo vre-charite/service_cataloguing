@@ -39,9 +39,7 @@ class EntityAction(Resource):
         '''
         add new entity to the metadata service by payload
         '''
-        app.logger.info('Calling EntityAction post')
         post_data = request.get_json()
-        app.logger.info('Recieving the payload for upload: %s', json.dumps(post_data))
 
         try:
             headers = {'content-type': 'application/json'}
@@ -106,9 +104,7 @@ class EntityQueryBasic(Resource):
         '''
         Get list of entities by the payload query
         '''
-        app.logger.info('Calling EntityQueryBasic post')
         post_data = request.get_json()
-        app.logger.info('Recieving the payload: %s', json.dumps(post_data))
 
         #######################################################################
         # Note: I dont know why atlas will give wrong approximate count
@@ -119,30 +115,14 @@ class EntityQueryBasic(Resource):
         type_name = post_data.get('typeName', None)
         app.logger.debug(ConfigClass.ATLAS_API+'api/atlas/v2/search/quick')
         app.logger.debug('EntityQueryBasic post_data' + str(post_data))
-        try:
-            headers = {'content-type': 'application/json'}
-            res = requests.post(ConfigClass.ATLAS_API+'api/atlas/v2/search/quick', 
-                verify=False, headers=headers, json=post_data, 
-                auth=HTTPBasicAuth(ConfigClass.ATLAS_ADMIN, ConfigClass.ATLAS_PASSWD)
-            )
-            # log it if not 200 level response
-            if res.status_code >= 300:
-                app.logger.error('Error in response of quick search: %s', res.text)
-                return {"result": res.text}, res.status_code
+        limit = 0 
+        offset = 0
+        if post_data.get("limit", None):
+            limit = post_data.pop("limit")
+        if post_data.get("offset", None):
+            offset = post_data.pop("offset")
 
-            aggregation = res.json()['aggregationMetrics'].get('__typeName', [])
-            app.logger.debug('EntityQueryBasic res 1: ' + str(res.json()))
-            # get the file count by type_name
-            approximate_count = None
-            if len(aggregation) == 1:
-                approximate_count = aggregation[0]['count']
-
-        except Exception as e:
-            app.logger.error('Error in getting approximate count: %s', str(e))
-            return {"result":str(e)}, 403
-
-
-        # print(post_data)
+        post_data["limit"] = 99999 
         try:
             headers = {'content-type': 'application/json'}
             res = requests.post(ConfigClass.ATLAS_API+'api/atlas/v2/search/basic', 
@@ -156,13 +136,24 @@ class EntityQueryBasic(Resource):
             # also update the approximate count
             app.logger.debug('EntityQueryBasic res 2: ' + str(res.json()))
             ret_json = res.json()
-            if approximate_count:
-                ret_json.update({"approximateCount": approximate_count})
 
         except Exception as e:
             app.logger.error('Error in getting file list: %s', str(e))
             return {"result":str(e)}, 403
+        entity_data = []
+        if 'entities' in ret_json:
+            entity_data = ret_json["entities"]
 
+        approximateCount = len(entity_data)
+
+        if int(offset):
+            entity_data = entity_data[int(offset):]
+        if int(limit):
+            entity_data = entity_data[:int(limit)]
+        ret_json["entities"] = entity_data
+        ret_json["approximateCount"] = approximateCount
+        ret_json["searchParameters"]["limit"] = int(limit) 
+        ret_json["searchParameters"]["offset"] = int(offset) 
         app.logger.debug('EntityQueryBasic ret_json: ' + str(ret_json))
         return {"result":ret_json}, res.status_code
         
@@ -200,7 +191,6 @@ class EntityActionByGuid(Resource):
         '''
         get specific entity by guid
         '''
-        app.logger.info('Calling EntityActionByGuid get')
         app.logger.info('Recieving the parameter: %s', guid)
 
         try:
@@ -223,7 +213,6 @@ class EntityActionByGuid(Resource):
 
     # deprecate the entity by guid
     def delete(self, guid):
-        app.logger.info('Calling EntityActionByGuid get')
         app.logger.info('Recieving the parameter: %s', guid)
 
         try:
@@ -273,7 +262,6 @@ class EntityByGuidBulk(Resource):
 
     @atlas_entity_ns.response(200, entity_sample_return)
     def post(self):
-        app.logger.info('Calling EntityActionByGuidBulk get')
         guids = request.get_json().get("guids", [])
         if not guids:
             return {"result": "guids required"}, 400
@@ -298,7 +286,6 @@ class EntityTagByGuid(Resource):
         the api allow to update the tags given one guid
         '''
 
-        app.logger.info('Calling EntityTagByGuid post')
         post_data = request.get_json()
         label = post_data.get('labels', None)
         if not isinstance(label, list):
@@ -323,6 +310,8 @@ class EntityTagByGuid(Resource):
                 return {"result":error_json.get('errorMessage', None)}, 403
 
         except Exception as e:
+            if "Invalid label" in str(e):
+                return {"result":str(e)}, 403
             app.logger.error('Error in update entity by guid: %s', str(e))
             return {"result":str(e)}, 500
 
