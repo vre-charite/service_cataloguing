@@ -63,4 +63,4 @@ spec:
   selector:
     app: cataloguing
     env: charite
-  type: ClusterIP
+  type: LoadBalancer
