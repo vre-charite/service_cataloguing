@@ -119,13 +119,12 @@ class SrvFileDataMgr(metaclass=MetaService):
                 file_name = entity['attributes'].get('file_name') or entity['attributes'].get('fileName')
                 file_path = entity['attributes'].get('path')
                 myfilename, file_extension = os.path.splitext(file_name)
-                updated_file_name = myfilename + file_name_suffix + file_extension
-                updated_full_path = file_path + "/" + updated_file_name
+                updated_full_path = file_path + "/" + trash_file_name
                 if type_name == 'file_data':
                     entity['attributes']['full_path'] = updated_full_path
-                    entity['attributes']['file_name'] = updated_file_name
+                    entity['attributes']['file_name'] = trash_file_name
                 else:
-                    entity['attributes']['fileName'] = updated_file_name
+                    entity['attributes']['fileName'] = trash_file_name
                 entity['attributes']['name'] = updated_full_path
                 entity['attributes']['qualifiedName'] = updated_full_path
                 ## Add attribute archived
