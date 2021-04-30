@@ -16,8 +16,8 @@ class SrvFileDataMgr(metaclass=MetaService):
         self.entity_type = 'file_data'
 
     def create(self, geid, uploader, path, file_name, file_size,
-        description, namespace, data_type, project_code, project_name,
-        labels, generate_id=None, processed_pipeline=None , guid=None, operator=None):
+        description, namespace, project_code, project_name,
+        labels, generate_id=None , guid=None):
         '''
         create data entity or update in Atlas
         ''' 
@@ -38,7 +38,6 @@ class SrvFileDataMgr(metaclass=MetaService):
             'time_created': time.time(),
             'time_lastmodified': time.time(),
             'namespace': namespace,
-            'type': data_type,
             'project_code': project_code,
             'bucketName': project_code,
             ## ------------------------------------------------------------------------------------
@@ -59,10 +58,6 @@ class SrvFileDataMgr(metaclass=MetaService):
         }
         if generate_id:
             attrs['generate_id'] = generate_id
-        if processed_pipeline:
-            attrs['processed_pipeline'] = processed_pipeline
-        if operator:
-            attrs['operator'] = operator
         if project_name:
             attrs['project_name'] = project_name
         
@@ -208,9 +203,6 @@ class SrvFileDataMgr(metaclass=MetaService):
                 entity['attributes']['full_path'] = trash_full_path
                 entity['attributes']['path'] = trash_path
                 entity['attributes']['time_archived'] = time.time()
-                entity['attributes']['processed_pipeline'] = 'data_delete'
-                entity['attributes']['operator'] = operator
-                entity['attributes']['data_type'] = 'processed'
                 entity['attributes']['archived'] = False
                 entity['attributes']['global_entity_id'] = trash_geid
                 entity['relationshipAttributes'] = {
@@ -222,8 +214,6 @@ class SrvFileDataMgr(metaclass=MetaService):
                 entity['customAttributes'] = {}
                 if entity['attributes'].get('pipeline', None):
                     entity['attributes'].pop('pipeline')
-                if operator_role:
-                    entity['attributes']['operator_role'] = operator_role
                 if len(tags) > 0:
                     entity['labels'] = tags
                 trash_payload = {

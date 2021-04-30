@@ -15,7 +15,7 @@ class FileDataOperations(Resource):
         post_data = request.get_json()
         self.__logger.info('FileDataOperations Recieving the payload: %s', json.dumps(post_data))
         try:
-            required = ['uploader', 'file_name', 'path', 'file_size', 'namespace', 'data_type', 'project_code', 'global_entity_id']
+            required = ['uploader', 'file_name', 'path', 'file_size', 'namespace', 'project_code', 'global_entity_id']
             for param in required:
                 if not param in post_data:
                     return {"result": "{} is required".format(param)}, 404
@@ -25,13 +25,10 @@ class FileDataOperations(Resource):
             file_size = post_data.get('file_size')
             description = post_data.get('description', 'N/A')
             namespace = post_data.get('namespace')
-            data_type = post_data.get('data_type')
             project_code = post_data.get('project_code')
             project_name = post_data.get('project_name', project_code)
             labels = post_data.get('labels', [])
             generate_id = post_data.get('generate_id', None)
-            processed_pipeline = post_data.get('processed_pipeline', None)
-            operator = post_data.get('operator', None)
             global_entity_id = post_data.get('global_entity_id')
 
             response = self.file_data_mgr.create(
@@ -42,13 +39,10 @@ class FileDataOperations(Resource):
                 file_size,
                 description,
                 namespace,
-                data_type,
                 project_code,
                 project_name,
                 labels,
                 generate_id=generate_id,
-                processed_pipeline=processed_pipeline,
-                operator=operator,
                 guid=None
             )
             if response.status_code == 200:

@@ -21,7 +21,6 @@ file_data_post_form = module_api.model(
         'file_size': fields.Integer(readOnly=True, description='file size'),
         'description': fields.String(readOnly=True, description='description'),
         'namespace': fields.String(readOnly=True, description='namespace', enum=['greenroom', 'core']),
-        'data_type': fields.String(readOnly=True, description='data type', enum=['raw', 'processed']),
         'project_code': fields.String(readOnly=True, description='project code'),
         'labels': fields.List(readOnly=True, description='labels', cls_or_instance=fields.String), ## optional
         'generate_id': fields.String(readOnly=True, description='generate_id'), ## optional
