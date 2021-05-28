@@ -91,7 +91,7 @@ class SrvFileDataMgr(metaclass=MetaService):
         )
         return res
 
-    def delete(self, entity_name, type_name, trash_path, trash_file_name, operator, file_name_suffix, geid=None):
+    def delete(self, entity_name, type_name, trash_path, trash_file_name, operator, file_name_suffix, geid=None, updated_original_path=None):
         try:
             query_url = self.base_url + self.entity_uniquename_endpoint.format(type_name, entity_name)
             query_res = requests.get(query_url, auth = requests.auth.HTTPBasicAuth(ConfigClass.ATLAS_ADMIN,
@@ -114,7 +114,7 @@ class SrvFileDataMgr(metaclass=MetaService):
                 file_name = entity['attributes'].get('file_name') or entity['attributes'].get('fileName')
                 file_path = entity['attributes'].get('path')
                 myfilename, file_extension = os.path.splitext(file_name)
-                updated_full_path = file_path + "/" + trash_file_name
+                updated_full_path = file_path + "/" + trash_file_name if not updated_original_path else updated_original_path + "/" + trash_file_name
                 if type_name == 'file_data':
                     entity['attributes']['full_path'] = updated_full_path
                     entity['attributes']['file_name'] = trash_file_name
@@ -150,7 +150,7 @@ class SrvFileDataMgr(metaclass=MetaService):
             ## Create trash entity
             if type_name == 'file_data':
                 ## fetch global entity id
-                entity_id_url = ConfigClass.UTILITY_SERVICE + "/v1/utility/id?entity_type=file_data"
+                entity_id_url = ConfigClass.UTILITY_SERVICE + "utility/id?entity_type=file_data"
                 respon_entity_id_fetched = requests.get(entity_id_url)
                 if respon_entity_id_fetched.status_code == 200:
                     pass

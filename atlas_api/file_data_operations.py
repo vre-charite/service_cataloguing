@@ -69,16 +69,18 @@ class FileDataOperations(Resource):
         full_path = path + '/' + file_name
         trash_path = post_data.get('trash_path')
         trash_file_name = post_data.get('trash_file_name')
+        updated_original_file_path = post_data.get('updated_original_file_path', None)
         operator = post_data.get('operator')
         trash_geid = post_data.get('trash_geid')
         ## Entity_types
-        entity_types = ['file_data', 'nfs_file', 'nfs_file_processed']
+        entity_types = ['file_data']
         ## Archive filedata entity
         mgr = SrvFileDataMgr()
         response = api_res_models.APIResponse()
         deletion_ress = []
         for entity_type in entity_types:
-            deletion_res = mgr.delete(full_path, entity_type, trash_path, trash_file_name, operator, file_name_suffix, geid=trash_geid)
+            deletion_res = mgr.delete(full_path, entity_type, trash_path, trash_file_name,
+            operator, file_name_suffix, geid=trash_geid, updated_original_path=updated_original_file_path)
             if deletion_res.get('error'):
                 return deletion_res, deletion_res['status_code']
             else:
