@@ -25,11 +25,11 @@ class SrvFileDataMgr(metaclass=MetaService):
 
         attrs = {
             'global_entity_id': geid,
-            'name': path + '/' + file_name,
+            'name': geid,
             'file_name': file_name,
             'path': path,
-            'qualifiedName': path + '/' + file_name,
-            'full_path': path + '/' + file_name,
+            'qualifiedName': geid,
+            'full_path': geid, # full path requires unique
             'file_size': file_size,
             'generate_id': generate_id,
             'archived': False,
@@ -116,12 +116,12 @@ class SrvFileDataMgr(metaclass=MetaService):
                 myfilename, file_extension = os.path.splitext(file_name)
                 updated_full_path = file_path + "/" + trash_file_name if not updated_original_path else updated_original_path + "/" + trash_file_name
                 if type_name == 'file_data':
-                    entity['attributes']['full_path'] = updated_full_path
+                    # entity['attributes']['full_path'] = updated_full_path
                     entity['attributes']['file_name'] = trash_file_name
                 else:
                     entity['attributes']['fileName'] = trash_file_name
-                entity['attributes']['name'] = updated_full_path
-                entity['attributes']['qualifiedName'] = updated_full_path
+                # entity['attributes']['name'] = updated_full_path
+                # entity['attributes']['qualifiedName'] = updated_full_path
                 ## Add attribute archived
                 if entity['attributes'].get('archived'):
                     entity['attributes']['archived'] = True
@@ -179,7 +179,7 @@ class SrvFileDataMgr(metaclass=MetaService):
                 project_code = entity['attributes'].get('project_code')
                 neo4j_json = {
                     "start_label": "User",
-                    "end_label": "Dataset",
+                    "end_label": "Container",
                     "start_params": {
                         "name": operator
                     },
@@ -197,10 +197,10 @@ class SrvFileDataMgr(metaclass=MetaService):
 
                 origin_guid = entity.pop('guid', None)
                 trash_full_path = trash_path + '/' + trash_file_name
-                entity['attributes']['name'] = trash_full_path
-                entity['attributes']['qualifiedName'] = trash_full_path
+                entity['attributes']['name'] = trash_geid
+                entity['attributes']['qualifiedName'] = trash_geid
                 entity['attributes']['file_name'] = trash_file_name
-                entity['attributes']['full_path'] = trash_full_path
+                entity['attributes']['full_path'] = trash_geid
                 entity['attributes']['path'] = trash_path
                 entity['attributes']['time_archived'] = time.time()
                 entity['attributes']['archived'] = False
