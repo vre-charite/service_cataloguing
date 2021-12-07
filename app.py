@@ -1,7 +1,8 @@
 from app import create_app
+from config import ConfigClass
 
 app = create_app()
 
 # add to https
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=5064, debug=True)
+	app.run(host=ConfigClass.settings.host, port=ConfigClass.settings.port, debug=True)
