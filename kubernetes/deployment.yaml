@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: cataloguing
-          image: 10.32.42.225:5000/cataloguing:<VERSION>
+          image: s-hdp-vre-v007.charite.de/cataloguing:<VERSION>
           ports:
             - containerPort: 5064
           env:
