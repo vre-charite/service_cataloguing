@@ -1,8 +1,28 @@
+# Copyright 2022 Indoc Research
+# 
+# Licensed under the EUPL, Version 1.2 or – as soon they
+# will be approved by the European Commission - subsequent
+# versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the
+# Licence.
+# You may obtain a copy of the Licence at:
+# 
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+# 
+# Unless required by applicable law or agreed to in
+# writing, software distributed under the Licence is
+# distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.
+# See the Licence for the specific language governing
+# permissions and limitations under the Licence.
+# 
+
 import unittest
 import time
+from config import ConfigClass
 from tests.logger import Logger
 from tests.prepare_tests import SetUpTest, test_client
-from config import ConfigClass
 from datetime import datetime, timedelta
 
 class TestEntityOperation(unittest.TestCase):
@@ -69,11 +89,10 @@ class TestEntityOperation(unittest.TestCase):
                     'updateBy': 'test_no_auth',
                     'bucketName': bucket_name, # project code
                     'fileName': file_name,
-                    'generateID': 'undefined'
                 },
                 'isIncomplete': False,
                 'status': 'ACTIVE',
-                'createdBy': ConfigClass.ATLAS_ADMIN,
+                'createdBy': "admin",
                 'version': 0,
                 'relationshipAttributes': {
                     'schema': [],
@@ -560,7 +579,7 @@ class TestEntityOperation(unittest.TestCase):
                 "criterion": self.criterion
             },
             'tagFilters': None,
-            'attributes': ['generateID', 'fileName', 'fileSize', 'path'],
+            'attributes': ['fileName', 'fileSize', 'path'],
             'limit': page_size,
             'offset': page * page_size,
             'sortBy': sorting,

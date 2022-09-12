@@ -1,3 +1,24 @@
+# Copyright 2022 Indoc Research
+# 
+# Licensed under the EUPL, Version 1.2 or – as soon they
+# will be approved by the European Commission - subsequent
+# versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the
+# Licence.
+# You may obtain a copy of the Licence at:
+# 
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+# 
+# Unless required by applicable law or agreed to in
+# writing, software distributed under the Licence is
+# distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.
+# See the Licence for the specific language governing
+# permissions and limitations under the Licence.
+# 
+
+from config import ConfigClass
 from flask import request, make_response, jsonify
 from flask_restx import Resource
 from services.logger_services.logger_factory_service import SrvLoggerFactory
@@ -28,7 +49,7 @@ class FileDataOperations(Resource):
             project_code = post_data.get('project_code')
             project_name = post_data.get('project_name', project_code)
             labels = post_data.get('labels', [])
-            generate_id = post_data.get('generate_id', None)
+            dcm_id = post_data.get("dcm_id", None)
             global_entity_id = post_data.get('global_entity_id')
 
             response = self.file_data_mgr.create(
@@ -42,7 +63,7 @@ class FileDataOperations(Resource):
                 project_code,
                 project_name,
                 labels,
-                generate_id=generate_id,
+                dcm_id=dcm_id,
                 guid=None
             )
             if response.status_code == 200:
@@ -72,14 +93,14 @@ class FileDataOperations(Resource):
         updated_original_file_path = post_data.get('updated_original_file_path', None)
         operator = post_data.get('operator')
         trash_geid = post_data.get('trash_geid')
+        
         ## Entity_types
         entity_types = ['file_data']
         ## Archive filedata entity
-        mgr = SrvFileDataMgr()
         response = api_res_models.APIResponse()
         deletion_ress = []
         for entity_type in entity_types:
-            deletion_res = mgr.delete(full_path, entity_type, trash_path, trash_file_name,
+            deletion_res = self.file_data_mgr.delete(full_path, entity_type, trash_path, trash_file_name,
             operator, file_name_suffix, geid=trash_geid, updated_original_path=updated_original_file_path)
             if deletion_res.get('error'):
                 return deletion_res, deletion_res['status_code']

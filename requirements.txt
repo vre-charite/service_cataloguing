@@ -1,3 +1,23 @@
+// Copyright 2022 Indoc Research
+// 
+// Licensed under the EUPL, Version 1.2 or – as soon they
+// will be approved by the European Commission - subsequent
+// versions of the EUPL (the "Licence");
+// You may not use this work except in compliance with the
+// Licence.
+// You may obtain a copy of the Licence at:
+// 
+// https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+// 
+// Unless required by applicable law or agreed to in
+// writing, software distributed under the Licence is
+// distributed on an "AS IS" basis,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+// express or implied.
+// See the Licence for the specific language governing
+// permissions and limitations under the Licence.
+// 
+
 aniso8601==8.0.0
 astroid==2.4.2
 attrs==20.2.0
@@ -8,7 +28,7 @@ click==7.1.2
 cryptography==2.9.2
 docopt==0.6.2
 ecdsa==0.14.1
-Flask==1.1.2
+Flask==1.1.4
 Flask-Cors==3.0.8
 Flask-Executor==0.9.3
 Flask-JWT==0.3.2
@@ -34,7 +54,7 @@ pykerberos==1.2.1
 pylint==2.6.0
 pyrsistent==0.17.3
 python-jose==3.2.0
-python-json-logger==2.0.1
+python-json-logger==0.1.11
 python-keycloak==0.21.0
 pytz==2020.1
 python-dotenv==0.19.1
@@ -48,3 +68,8 @@ toml==0.10.1
 urllib3==1.25.9
 Werkzeug==1.0.1
 wrapt==1.12.1
+opentelemetry-exporter-jaeger==1.6.2
+opentelemetry-instrumentation==0.26b1
+opentelemetry-instrumentation-flask==0.26b1
+opentelemetry-instrumentation-requests==0.26b1
+opentelemetry-instrumentation-logging==0.26b1

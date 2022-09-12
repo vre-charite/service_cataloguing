@@ -1,3 +1,23 @@
+# Copyright 2022 Indoc Research
+# 
+# Licensed under the EUPL, Version 1.2 or – as soon they
+# will be approved by the European Commission - subsequent
+# versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the
+# Licence.
+# You may obtain a copy of the Licence at:
+# 
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+# 
+# Unless required by applicable law or agreed to in
+# writing, software distributed under the Licence is
+# distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.
+# See the Licence for the specific language governing
+# permissions and limitations under the Licence.
+# 
+
 from app import create_app
 
 
@@ -9,33 +29,6 @@ test_client = app.test_client()
 
 
 class SetUpTest:
-
-    create_entity_response = """
-                            {"result": 
-                                {"mutatedEntities": 
-                                    {"UPDATE": [{"typeName": "nfs_file_processed",
-                                                 "attributes": {"owner": "test_owner",
-                                                                "createTime": 1603814950,
-                                                                "qualifiedName": "test_file",
-                                                                "name": "/data/vre-storage/generate/processed/dicom_edit/test_file_name"
-                                                                },
-                                                 "guid": "f6b6db37-fe16-4bf9-92e4-68fa0b8320de",
-                                                 "status": "ACTIVE",
-                                                 "displayText": "/data/vre-storage/generate/processed/dicom_edit/test_file_name",
-                                                 "classificationNames": [],
-                                                 "classifications": [],
-                                                 "meaningNames": [],
-                                                 "meanings": [],
-                                                 "isIncomplete": false,
-                                                 "labels": []
-                                                 }]
-                                     },
-                                 "guidAssignments": {
-                                     "-9171417058881428": "f6b6db37-fe16-4bf9-92e4-68fa0b8320de"
-                                 }
-                                 }
-                             }
-                            """
 
     def __init__(self, log, test_app):
         self.log = log
