@@ -1,40 +1,54 @@
+# Copyright 2022 Indoc Research
+# 
+# Licensed under the EUPL, Version 1.2 or – as soon they
+# will be approved by the European Commission - subsequent
+# versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the
+# Licence.
+# You may obtain a copy of the Licence at:
+# 
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+# 
+# Unless required by applicable law or agreed to in
+# writing, software distributed under the Licence is
+# distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.
+# See the Licence for the specific language governing
+# permissions and limitations under the Licence.
+# 
+
 import os
 import requests
+from common import VaultClient
 from requests.models import HTTPError
 from pydantic import BaseSettings, Extra
 from typing import Dict, Set, List, Any
 from functools import lru_cache
+from dotenv import load_dotenv
 
+#load env var from local env file for local test
+load_dotenv()
 SRV_NAMESPACE = os.environ.get("APP_NAME", "service_cataloguing")
 CONFIG_CENTER_ENABLED = os.environ.get("CONFIG_CENTER_ENABLED", "false")
-CONFIG_CENTER_BASE_URL = os.environ.get("CONFIG_CENTER_BASE_URL", "NOT_SET")
 
 def load_vault_settings(settings: BaseSettings) -> Dict[str, Any]:
     if CONFIG_CENTER_ENABLED == "false":
         return {}
     else:
-        return vault_factory(CONFIG_CENTER_BASE_URL)
-
-def vault_factory(config_center) -> dict:
-    url = f"{config_center}/v1/utility/config/{SRV_NAMESPACE}"
-    config_center_respon = requests.get(url)
-    if config_center_respon.status_code != 200:
-        raise HTTPError(config_center_respon.text)
-    return config_center_respon.json()['result']
+        vc = VaultClient(os.getenv("VAULT_URL"), os.getenv("VAULT_CRT"), os.getenv("VAULT_TOKEN"))
+        return vc.get_from_vault(SRV_NAMESPACE)
 
 
 class Settings(BaseSettings):
     port: int = 5064
     host: str = "0.0.0.0"
     env: str = "test"
+    version: str = "0.1.0"
     namespace: str = ""
+    opentelemetry_enabled: bool = False
     
-    # disk mounts
-    NFS_ROOT_PATH: str = "./"
-    VRE_ROOT_PATH: str = "/vre-data"
-    ROOT_PATH: str = {
-        "vre": "/vre-data"
-    }.get(namespace, "/data/vre-storage")
+    ROOT_PATH: str
     ATLAS_API: str 
     NEO4J_SERVICE: str 
     UTILITY_SERVICE: str 
@@ -44,8 +58,13 @@ class Settings(BaseSettings):
     # the packaged modules
     api_modules: List[str] = ["atlas_api"]
 
+    def __init__(self):
+        super().__init__()
 
-    # trigger pipeline
+        self.opentelemetry_enabled = True if self.OPEN_TELEMETRY_ENABLED == "TRUE" else False
+        self.ATLAS_API += "/"
+        self.NEO4J_SERVICE += "/v1/neo4j/"
+        self.UTILITY_SERVICE += "/v1/"
     
     class Config:
         env_file = '.env'
@@ -60,9 +79,9 @@ class Settings(BaseSettings):
             file_secret_settings,
         ):
             return (
+                init_settings,
                 load_vault_settings,
                 env_settings,
-                init_settings,
                 file_secret_settings,
             )
     
@@ -72,22 +91,4 @@ def get_settings():
     settings =  Settings()
     return settings
 
-class ConfigClass(object):
-    settings = get_settings()
-
-    version = "0.1.0"
-    env = settings.env
-    disk_namespace = settings.namespace
-    
-    # disk mounts
-    NFS_ROOT_PATH = settings.NFS_ROOT_PATH
-    VRE_ROOT_PATH = settings.VRE_ROOT_PATH
-    ROOT_PATH = settings.ROOT_PATH
-    ATLAS_API = settings.ATLAS_API + "/"
-    NEO4J_SERVICE = settings.NEO4J_SERVICE + "/v1/neo4j/"
-    UTILITY_SERVICE = settings.UTILITY_SERVICE + "/v1/"
-    ATLAS_ADMIN = settings.ATLAS_ADMIN
-    ATLAS_PASSWD = settings.ATLAS_PASSWD
-
-    # the packaged modules
-    api_modules = settings.api_modules
+ConfigClass = Settings()

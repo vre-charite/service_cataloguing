@@ -1,3 +1,23 @@
+# Copyright 2022 Indoc Research
+# 
+# Licensed under the EUPL, Version 1.2 or – as soon they
+# will be approved by the European Commission - subsequent
+# versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the
+# Licence.
+# You may obtain a copy of the Licence at:
+# 
+# https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+# 
+# Unless required by applicable law or agreed to in
+# writing, software distributed under the Licence is
+# distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.
+# See the Licence for the specific language governing
+# permissions and limitations under the Licence.
+# 
+
 from models.meta_class import MetaService
 from services.logger_services.logger_factory_service import SrvLoggerFactory
 from config import ConfigClass
@@ -17,7 +37,7 @@ class SrvFileDataMgr(metaclass=MetaService):
 
     def create(self, geid, uploader, path, file_name, file_size,
         description, namespace, project_code, project_name,
-        labels, generate_id=None , guid=None):
+        labels, dcm_id=None , guid=None):
         '''
         create data entity or update in Atlas
         ''' 
@@ -31,7 +51,7 @@ class SrvFileDataMgr(metaclass=MetaService):
             'qualifiedName': geid,
             'full_path': geid, # full path requires unique
             'file_size': file_size,
-            'generate_id': generate_id,
+            "dcm_id": dcm_id,
             'archived': False,
             'description': description,
             'owner': uploader,
@@ -56,8 +76,8 @@ class SrvFileDataMgr(metaclass=MetaService):
             'isSymlink': False,
             'group': None,
         }
-        if generate_id:
-            attrs['generate_id'] = generate_id
+        if dcm_id:
+            attrs["dcm_id"] = dcm_id
         if project_name:
             attrs['project_name'] = project_name
         
@@ -93,7 +113,18 @@ class SrvFileDataMgr(metaclass=MetaService):
 
     def delete(self, entity_name, type_name, trash_path, trash_file_name, operator, file_name_suffix, geid=None, updated_original_path=None):
         try:
-            query_url = self.base_url + self.entity_uniquename_endpoint.format(type_name, entity_name)
+            ## Entity geid
+            neo4j_url = ConfigClass.NEO4J_SERVICE + 'nodes/File/query'
+            post_payload = {
+                "full_path": entity_name
+            }
+            neo4j_res = requests.post(neo4j_url, json=post_payload)
+            neo4j_data = json.loads(neo4j_res.text)
+            if len(neo4j_data) > 0:
+                entity_geid = neo4j_data[0]["global_entity_id"]
+
+            query_url = self.base_url + self.entity_uniquename_endpoint.format(type_name, entity_geid)
+            self._logger.info(f"query url is {query_url}")
             query_res = requests.get(query_url, auth = requests.auth.HTTPBasicAuth(ConfigClass.ATLAS_ADMIN,
                     ConfigClass.ATLAS_PASSWD))
             if not query_res.status_code == 200 and not query_res.status_code == 404:
@@ -110,6 +141,7 @@ class SrvFileDataMgr(metaclass=MetaService):
                 }
             else:
                 entity = query_res.json()['entity']
+                self._logger.info(f"Entity in atlas is: {str(entity)}")
                 ## update file name
                 file_name = entity['attributes'].get('file_name') or entity['attributes'].get('fileName')
                 file_path = entity['attributes'].get('path')
@@ -160,7 +192,8 @@ class SrvFileDataMgr(metaclass=MetaService):
                 ## need inherite tags from nfs_file and it will be deprecated after not using nfs_file
                 location = 'nfs_file'
 
-                if not '/data/vre-storage' in entity_name or not '/raw' in entity_name:
+                if not ConfigClass.ROOT_PATH in entity_name or not '/raw' in entity_name:
+                    self._logger.info('entity_name is: {}'.format(str(entity_name)))
                     location = 'nfs_file_processed'
                 query_url = self.base_url + self.entity_uniquename_endpoint.format(location, entity_name)
                 query_res = requests.get(query_url, auth = requests.auth.HTTPBasicAuth(ConfigClass.ATLAS_ADMIN,
