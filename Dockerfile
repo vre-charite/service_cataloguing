@@ -20,8 +20,8 @@
 
 FROM python:3.7-buster
 
-ARG pip_username
-ARG pip_password
+ARG PIP_USERNAME
+ARG PIP_PASSWORD
 
 WORKDIR /usr/src/app
 
@@ -32,6 +32,6 @@ apt-get install -y vim-tiny less && ln -s /usr/bin/vim.tiny /usr/bin/vim && rm -
 
 COPY . .
 
-RUN PIP_USERNAME=$pip_username PIP_PASSWORD=$pip_password pip install --no-cache-dir -r requirements.txt -r internal_requirements.txt && chmod +x gunicorn_starter.sh
+RUN PIP_USERNAME=$PIP_USERNAME PIP_PASSWORD=$PIP_PASSWORD pip install --no-cache-dir -r requirements.txt -r internal_requirements.txt && chmod +x gunicorn_starter.sh
 
 CMD ["./gunicorn_starter.sh"]
